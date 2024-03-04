@@ -3,8 +3,8 @@
 #include "nvEncodeAPI.h"
 
 // Input video file and output file paths
-const char* inputFilePath = "C:\\Users\\erenm\\OneDrive\\Masa�st�\\c++ task\\rabbit.mp4";
-const char* outputFilePath = "C:\\Users\\erenm\\OneDrive\\Masa�st�\\c++ task";
+const char* inputFilePath = "C:\\Users\\erenm\\OneDrive\\Masaüstü\\c++ task\\rabbit.mp4";
+const char* outputFilePath = "C:\\Users\\erenm\\OneDrive\\Masaüstü\\c++ task";
 
 int main() {
     NVENCSTATUS nvStatus;
@@ -54,8 +54,8 @@ int main() {
     }
 
     // Performing encoding and writing the encoded output to file
-    uint32_t encodedBufferSize = 0;
-    uint8_t* encodedBuffer = nullptr;
+    uint32_t encodedBufferSize = initializeParams.encodeWidth * initializeParams.encodeHeight * 3 / 2; // Eklenen kısım: Kodun işlem yapacağı buffer boyutu
+    uint8_t* encodedBuffer = new uint8_t[encodedBufferSize];
     while (!inputFile.eof()) {
         // Reading data from the input video file
         const int bufferSize = 5 * 1024 * 1024; // 5 MB buffer size
@@ -72,9 +72,26 @@ int main() {
         encodePicParams.inputPitch = initializeParams.encodeWidth;
         encodePicParams.inputTimeStamp = 0;
         encodePicParams.inputBufferParams = nullptr;
-        encodePicParams.outputBitstream = encodedBuffer;
+        encodePicParams.outputBitstream = encodedBuffer; // Eklenen kısım: Çıkış buffer'ı
         encodePicParams.completionEvent = nullptr;
 
         nvStatus = nvEncodeAPI.nvEncEncodePicture(nullptr, &encodePicParams);
         if (nvStatus != NV_ENC_SUCCESS) {
             std::cerr << "Failed to encode picture" << std::endl;
+            return 1;
+        }
+
+        // Writing encoded data to the output file
+        fwrite(encodedBuffer, 1, encodePicParams.bitstreamSizeInBytes, outputFile); // Eklenen kısım: Kodun çıkış buffer'ını dosyaya yazma
+    }
+
+    // Cleanup
+    delete[] encodedBuffer;
+    delete[] initializeParams.encodeConfig;
+    fclose(outputFile);
+    inputFile.close();
+    nvEncodeAPI.nvEncDestroyEncoder(); // Eklenen kısım: Encoder'ı yok etme
+    nvEncodeAPI.nvEncCloseEncodeSession(); // Eklenen kısım: Encode session'ı kapatma
+
+    return 0;
+}
