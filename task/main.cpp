@@ -54,12 +54,11 @@ int main() {
     }
 
     // Performing encoding and writing the encoded output to file
-    uint32_t encodedBufferSize = initializeParams.encodeWidth * initializeParams.encodeHeight * 3 / 2; // Eklenen kısım: Kodun işlem yapacağı buffer boyutu
+    const int bufferSize = 5 * 1024 * 1024; // 5 MB buffer size
+    uint8_t* inputBuffer = new uint8_t[bufferSize];
+    uint32_t encodedBufferSize = initializeParams.encodeWidth * initializeParams.encodeHeight * 3 / 2;
     uint8_t* encodedBuffer = new uint8_t[encodedBufferSize];
     while (!inputFile.eof()) {
-        // Reading data from the input video file
-        const int bufferSize = 5 * 1024 * 1024; // 5 MB buffer size
-        uint8_t* inputBuffer = new uint8_t[bufferSize];
         inputFile.read(reinterpret_cast<char*>(inputBuffer), bufferSize);
         const uint32_t inputSize = static_cast<uint32_t>(inputFile.gcount());
 
@@ -72,7 +71,7 @@ int main() {
         encodePicParams.inputPitch = initializeParams.encodeWidth;
         encodePicParams.inputTimeStamp = 0;
         encodePicParams.inputBufferParams = nullptr;
-        encodePicParams.outputBitstream = encodedBuffer; 
+        encodePicParams.outputBitstream = encodedBuffer;
         encodePicParams.completionEvent = nullptr;
 
         nvStatus = nvEncodeAPI.nvEncEncodePicture(nullptr, &encodePicParams);
@@ -82,16 +81,17 @@ int main() {
         }
 
         // Writing encoded data to the output file
-        fwrite(encodedBuffer, 1, encodePicParams.bitstreamSizeInBytes, outputFile); 
+        fwrite(encodedBuffer, 1, encodePicParams.bitstreamSizeInBytes, outputFile);
     }
 
     // Cleanup
+    delete[] inputBuffer;
     delete[] encodedBuffer;
     delete[] initializeParams.encodeConfig;
     fclose(outputFile);
     inputFile.close();
-    nvEncodeAPI.nvEncDestroyEncoder(); 
-    nvEncodeAPI.nvEncCloseEncodeSession(); 
+    nvEncodeAPI.nvEncDestroyEncoder();
+    nvEncodeAPI.nvEncCloseEncodeSession();
 
     return 0;
 }
