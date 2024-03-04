@@ -72,7 +72,7 @@ int main() {
         encodePicParams.inputPitch = initializeParams.encodeWidth;
         encodePicParams.inputTimeStamp = 0;
         encodePicParams.inputBufferParams = nullptr;
-        encodePicParams.outputBitstream = encodedBuffer; // Eklenen kısım: Çıkış buffer'ı
+        encodePicParams.outputBitstream = encodedBuffer; 
         encodePicParams.completionEvent = nullptr;
 
         nvStatus = nvEncodeAPI.nvEncEncodePicture(nullptr, &encodePicParams);
@@ -82,7 +82,7 @@ int main() {
         }
 
         // Writing encoded data to the output file
-        fwrite(encodedBuffer, 1, encodePicParams.bitstreamSizeInBytes, outputFile); // Eklenen kısım: Kodun çıkış buffer'ını dosyaya yazma
+        fwrite(encodedBuffer, 1, encodePicParams.bitstreamSizeInBytes, outputFile); 
     }
 
     // Cleanup
@@ -90,8 +90,8 @@ int main() {
     delete[] initializeParams.encodeConfig;
     fclose(outputFile);
     inputFile.close();
-    nvEncodeAPI.nvEncDestroyEncoder(); // Eklenen kısım: Encoder'ı yok etme
-    nvEncodeAPI.nvEncCloseEncodeSession(); // Eklenen kısım: Encode session'ı kapatma
+    nvEncodeAPI.nvEncDestroyEncoder(); 
+    nvEncodeAPI.nvEncCloseEncodeSession(); 
 
     return 0;
 }
